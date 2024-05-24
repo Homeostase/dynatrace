@@ -1,0 +1,1 @@
+{"name":"dynatrace","version":"1.0.0","author":"Diogo Silva","displayName":"Dynatrace","tags":{"streamtags":["dynatrace"],"dataType":["logs"],"useCase":["reduction","filtering","enrichment"]}}

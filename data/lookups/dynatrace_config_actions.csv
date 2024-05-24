@@ -1,0 +1,4 @@
+vendor_action,action
+UPDATE,updated
+CREATE,created
+DELETE,deleted

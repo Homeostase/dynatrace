@@ -1,0 +1,110 @@
+output: default
+streamtags:
+  - dynatrace
+groups:
+  Or89jU:
+    name: Process CONFIG
+    index: 4
+  QCw5db:
+    name: Process WEB_UI
+    index: 5
+  3XnkAu:
+    name: Process TOKEN
+    index: 6
+asyncFuncTimeout: 1000
+functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Process unbroken JSON
+  - id: serde
+    filter: "true"
+    disabled: null
+    conf:
+      mode: extract
+      type: json
+      srcField: _raw
+  - id: event_breaker
+    filter: "true"
+    disabled: null
+    conf:
+      existingOrNew: new
+      shouldMarkCriblBreaker: false
+      ruleType: json_array
+      maxEventBytes: 51200
+      timestampAnchorRegex: /^/
+      timestamp:
+        type: auto
+        length: 150
+      timestampTimezone: local
+      timestampEarliest: -420weeks
+      timestampLatest: +1week
+      jsonExtractAll: true
+      eventBreakerRegex: /[\n\r]+(?!\s)/
+      existingRule: ""
+      jsonArrayField: auditLogs
+      jsonTimeField: timestamp
+  - id: regex_extract
+    filter: "true"
+    disabled: null
+    conf:
+      source: userOrigin
+      iterations: 100
+      overwrite: false
+      regex: /(?<src_ip>\d+\.\d+\.\d+\.\d+)/
+  - id: lookup
+    filter: category == 'CONFIG'
+    disabled: null
+    conf:
+      matchMode: exact
+      reloadPeriodSec: -1
+      addToEvent: false
+      inFields:
+        - eventField: eventType
+          lookupField: vendor_action
+      ignoreCase: false
+      file: dynatrace_config_actions.csv
+    groupId: Or89jU
+  - id: lookup
+    filter: category == 'WEB_UI'
+    disabled: null
+    conf:
+      matchMode: exact
+      reloadPeriodSec: -1
+      addToEvent: false
+      inFields:
+        - eventField: success
+          lookupField: vendor_action
+      ignoreCase: false
+      file: dynatrace_authentication_actions.csv
+    groupId: QCw5db
+  - id: lookup
+    filter: category == 'TOKEN'
+    disabled: null
+    conf:
+      matchMode: exact
+      reloadPeriodSec: -1
+      addToEvent: false
+      inFields:
+        - eventField: eventType
+          lookupField: vendor_action
+      ignoreCase: false
+      file: dynatrace_config_actions.csv
+    groupId: 3XnkAu
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      remove:
+        - auditLogs
+        - pageSize
+        - totalCount
+        - message
+        - _raw
+  - id: eval
+    filter: category == 'WEB_UI' && eventType == 'LOGIN'
+    disabled: null
+    conf:
+      remove:
+        - userOrigin
